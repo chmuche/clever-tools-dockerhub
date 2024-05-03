@@ -29,7 +29,7 @@ VOLUME ["/actions"]
 WORKDIR /actions
 
 COPY --from=build /tmp/fakeroot/ /
-
+COPY --from=ghcr.io/jqlang/jq /jq /usr/bin/jq
 ## The loader search ld-linux-x86-64.so.2 in /lib64 but the folder does not exist
 RUN ln -s lib lib64
 
