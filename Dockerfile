@@ -16,7 +16,9 @@ RUN \
 	cp $(ldd /usr/local/bin/clever | grep -o '/.\+\.so[^ ]*' | sort | uniq) /tmp/fakeroot/lib && \
 	for lib in /tmp/fakeroot/lib/*; do strip --strip-all $lib; done && \
 	mkdir -p /tmp/fakeroot/bin/ && \
-	cp /usr/local/bin/clever /tmp/fakeroot/bin/
+	cp /usr/local/bin/clever /tmp/fakeroot/bin/ && \
+    mkdir -p /tmp/fakeroot/certs/ && \
+    cp /etc/ssl/certs/ca-certificates.crt /tmp/fakeroot/certs/ca-certificates.crt
 
 FROM busybox:glibc AS release
 
@@ -29,6 +31,13 @@ VOLUME ["/actions"]
 WORKDIR /actions
 
 COPY --from=build /tmp/fakeroot/ /
+COPY --from=ghcr.io/tarampampam/curl:8.6.0 /bin/curl /usr/bin/curl
 COPY --from=ghcr.io/jqlang/jq /jq /usr/bin/jq
+
+
+## The loader search ld-linux-x86-64.so.2 in /lib64 but the folder does not exist
+RUN \
+    mkdir -p /etc/ssl/certs && \
+    ln  /certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 ENTRYPOINT ["clever"]
